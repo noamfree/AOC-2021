@@ -9,6 +9,7 @@ private val testInput1 = """
 
 private fun tests() {
     assertEquals(part1(parseInput(testInput1)), 150)
+    assertEquals(part2(parseInput(testInput1)), 900)
 }
 
 private fun main() {
@@ -16,17 +17,27 @@ private fun main() {
 
     val input = readInputFile("input2")
     val commands = parseInput(input)
-    println(part1(commands))
+    println("part1: ${part1(commands)}")
+    println("part2: ${part2(commands)}")
 
     println("day2")
 }
 
-private fun part1(commands: List<SubmarineCommand>): Int {
-    val initialPosition = Submarine(0, 0)
-    val finalPosition = commands.fold(initialPosition) { acc, submarineCommand ->
-        acc.executeCommand(submarineCommand)
-    }
+private fun part2(commands: List<SubmarineCommand>): Int {
+    val finalPosition = Submarine(0, 0, 0).executeCommands(commands) { executeCommand2(it) }
     return finalPosition.x * finalPosition.y
+}
+
+private fun part1(commands: List<SubmarineCommand>): Int {
+    val finalPosition = Submarine(0, 0, 0).executeCommands(commands) { executeCommand(it) }
+    return finalPosition.x * finalPosition.y
+}
+
+private fun Submarine.executeCommands(commands: List<SubmarineCommand>,
+                                      execute: Submarine.(SubmarineCommand) -> Submarine): Submarine {
+    return commands.fold(this) { acc: Submarine, submarineCommand: SubmarineCommand ->
+        acc.execute(submarineCommand)
+    }
 }
 
 sealed interface SubmarineCommand
@@ -34,7 +45,13 @@ data class Down(val amount: Int) : SubmarineCommand
 data class Up(val amount: Int) : SubmarineCommand
 data class Forward(val amount: Int) : SubmarineCommand
 
-private data class Submarine(val x: Int, val y: Int) // todo should we work with longs?
+private data class Submarine(val x: Int, val y: Int, val aim: Int) // todo should we work with longs?
+
+private fun Submarine.executeCommand2(command: SubmarineCommand) = when (command) {
+    is Down -> copy(aim = aim + command.amount)
+    is Forward -> copy(x = x + command.amount, y = y + aim * command.amount)
+    is Up -> copy(aim = aim - command.amount)
+}
 
 private fun Submarine.executeCommand(command: SubmarineCommand) = when (command) {
     is Down -> copy(y = y + command.amount)
