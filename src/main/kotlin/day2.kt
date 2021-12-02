@@ -24,20 +24,13 @@ private fun main() {
 }
 
 private fun part2(commands: List<SubmarineCommand>): Int {
-    val finalPosition = Submarine(0, 0, 0).executeCommands(commands) { executeCommand2(it) }
+    val finalPosition = Submarine(0, 0, 0).foldWithTransformations(commands, ::executeCommand2)
     return finalPosition.x * finalPosition.y
 }
 
 private fun part1(commands: List<SubmarineCommand>): Int {
-    val finalPosition = Submarine(0, 0, 0).executeCommands(commands) { executeCommand(it) }
+    val finalPosition = Submarine(0, 0, 0).foldWithTransformations(commands, ::executeCommand)
     return finalPosition.x * finalPosition.y
-}
-
-private fun Submarine.executeCommands(commands: List<SubmarineCommand>,
-                                      execute: Submarine.(SubmarineCommand) -> Submarine): Submarine {
-    return commands.fold(this) { acc: Submarine, submarineCommand: SubmarineCommand ->
-        acc.execute(submarineCommand)
-    }
 }
 
 sealed interface SubmarineCommand
@@ -47,16 +40,20 @@ data class Forward(val amount: Int) : SubmarineCommand
 
 private data class Submarine(val x: Int, val y: Int, val aim: Int) // todo should we work with longs?
 
-private fun Submarine.executeCommand2(command: SubmarineCommand) = when (command) {
-    is Down -> copy(aim = aim + command.amount)
-    is Forward -> copy(x = x + command.amount, y = y + aim * command.amount)
-    is Up -> copy(aim = aim - command.amount)
+private fun executeCommand2(submarine: Submarine, command: SubmarineCommand) = with(submarine) {
+    when (command) {
+        is Down -> copy(aim = aim + command.amount)
+        is Forward -> copy(x = x + command.amount, y = y + aim * command.amount)
+        is Up -> copy(aim = aim - command.amount)
+    }
 }
 
-private fun Submarine.executeCommand(command: SubmarineCommand) = when (command) {
-    is Down -> copy(y = y + command.amount)
-    is Forward -> copy(x = x + command.amount)
-    is Up -> copy(y = y - command.amount)
+private fun executeCommand(submarine: Submarine, command: SubmarineCommand) = with(submarine) {
+    when (command) {
+        is Down -> copy(y = y + command.amount)
+        is Forward -> copy(x = x + command.amount)
+        is Up -> copy(y = y - command.amount)
+    }
 }
 
 private fun parseInput(string: String): List<SubmarineCommand> =

@@ -16,6 +16,12 @@ inline fun <T> T.transformIndexed(times: Int, action: T.(i: Int) -> T): T {
     return res
 }
 
+fun <T, R> T.foldWithTransformations(transformation: List<R>, execute: (T, R) -> T) : T {
+    return transformation.fold(this) { accumulator: T, transform: R ->
+        execute(accumulator, transform)
+    }
+}
+
 fun String.splitByEmptyLine() = split("\n\n")
 
 fun <T> assertEquals(actual: T, expected: T, message: String? = null) {
